@@ -41,6 +41,7 @@ export default JSWooF.Framework.Input.KeyboardState = class {
             ARROWRIGHT: "ArrowRight",
             ARROWUP: "ArrowUp",
             ARROWDOWN: "ArrowDown",
+            SHIFTLEFT: "ShiftLeft",
             A: "KeyA",
             D: "KeyD",
             S: "KeyS",
@@ -71,6 +72,7 @@ export default JSWooF.Framework.Input.KeyboardState = class {
         this.Item.set("ArrowRight", false);
         this.Item.set("ArrowUp", false);
         this.Item.set("ArrowDown", false);
+        this.Item.set("ShiftLeft", false);
         
         /**
          * @todo Get a better understanding on how this part work...

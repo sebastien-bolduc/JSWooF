@@ -55,6 +55,8 @@ export default JSWooF.App1 = class extends Game {
         super.initialize();
         
         this.keyboardInput = new Keyboard();                                // Inputs
+        this.previousKeyboardState = new Map();
+        this.previousKeyboardState.set("Space", false);
         this.mouseInput = new Mouse("screen", 0, 0);
         
         this.GraphicsDevice.Viewport = new Viewport(-16, -16, 388, 324);    // Set the camera (viewport)
@@ -62,14 +64,16 @@ export default JSWooF.App1 = class extends Game {
         this.GraphicsDevice.Viewport.TileSafeArea.Y = 100;
         
         this.marioSprite = new MarioSprite();                               // Mario sprite
-        this.marioSprite.pos.X = 64;
-        this.marioSprite.pos.Y = 80;
+        this.marioSprite.pos.X = 40;
+        this.marioSprite.pos.Y = -174;
         this.marioSprite.vel.X = 0; // 200
         this.marioSprite.vel.Y = 0; // -600
         
-        this.gravity = 2000;                                                // Game gravity
+        this.gravity = 1500;                                                // Game gravity
         
         this.tiles = new Matrix();
+        
+        this.background = new Background();                                 // Background layer
     }
     
     /**
@@ -83,7 +87,7 @@ export default JSWooF.App1 = class extends Game {
         this.spriteBatch = new SpriteBatch(this.GraphicsDevice);
         
         // Loading our levels...
-        this.level = this.Content.load['JSON'](this.Content.RootDirectory + "/1-1.json");
+        this.level = this.Content.load['JSON'](this.Content.RootDirectory + "/example_1/jsonFile/1-1.json");
         this.level.isLoaded.then(data => {
             data.background.forEach(function(background) {
                 background.ranges.forEach(([x1, x2, y1, y2]) => {
@@ -109,14 +113,12 @@ export default JSWooF.App1 = class extends Game {
                 return that.cl_getByIndexOriginal.call(that.cl_tileResolver, x, y);     // Using 'call' for the 'this' reference
             };
             // -----------------------------------------------------------------
+            
+            this.background.loadTileSheet(this.Content, data.tileSheet);                // Loading our tiles...
         });
         
-        // Loading our tiles...
-        var backgroundTileSheet = this.Content.load['Texture2D'](this.Content.RootDirectory + "/tiles.png");
-        this.background = new Background(backgroundTileSheet);
-        
         // Loading our sprites...
-        var marioSpriteSheet = this.Content.load['Texture2D'](this.Content.RootDirectory + "/mario.png");
+        var marioSpriteSheet = this.Content.load['Texture2D'](this.Content.RootDirectory + "/example_1/mario.png");
         this.marioSprite.setSpriteSheet(marioSpriteSheet);
     }
     
@@ -132,18 +134,28 @@ export default JSWooF.App1 = class extends Game {
         }
         
         var keyboardState = this.keyboardInput.GetState;                    // This part handle the keyboard inputs...
-        if (keyboardState.isKeyDown(keyboardState.Keys.SPACE) && !this.marioSprite.jump.IsJumping) {
+        if (keyboardState.isKeyDown(keyboardState.Keys.SPACE) && !this.previousKeyboardState.get(keyboardState.Keys.SPACE)) {
             this.marioSprite.jump.start();
-        } else if (keyboardState.isKeyUp(keyboardState.Keys.SPACE) && this.marioSprite.jump.IsJumping) {
+            this.previousKeyboardState.set("Space", true);
+        } else if (keyboardState.isKeyUp(keyboardState.Keys.SPACE) && this.previousKeyboardState.get(keyboardState.Keys.SPACE)) {
             this.marioSprite.jump.cancel();
+            this.previousKeyboardState.set("Space", false);
         }
         
-        if (keyboardState.isKeyDown(keyboardState.Keys.D)) {
+        if (keyboardState.isKeyDown(keyboardState.Keys.D)) {                // Walking
             this.marioSprite.run.direction = 1;
+            this.marioSprite.isFacing = 1;
         } else if (keyboardState.isKeyDown(keyboardState.Keys.A)) {
             this.marioSprite.run.direction = -1;
+            this.marioSprite.isFacing = -1;
         } else {
             this.marioSprite.run.direction = 0;
+        }
+        
+        if (keyboardState.isKeyDown(keyboardState.Keys.SHIFTLEFT)) {        // Running
+            this.marioSprite.run.dragFactor = 1/5000;
+        } else {
+            this.marioSprite.run.dragFactor = 1/1000;
         }
         
         if (keyboardState.isKeyDown(keyboardState.Keys.ARROWLEFT)) {        // Scrolling the camera (viewport)
@@ -154,6 +166,9 @@ export default JSWooF.App1 = class extends Game {
             this.GraphicsDevice.Viewport.Y -= 100 * this.TargetElapsedTime;
         } else if (keyboardState.isKeyDown(keyboardState.Keys.ARROWDOWN)) {
             this.GraphicsDevice.Viewport.Y += 100 * this.TargetElapsedTime;
+        } else {
+            this.GraphicsDevice.Viewport.X = this.marioSprite.pos.X - 186;  // Scrolling the camera with Mario
+            this.GraphicsDevice.Viewport.Y = this.marioSprite.pos.Y - 154;
         }
         
         var mouseState = this.mouseInput.GetState;                          // This part handle the mouse inputs...
@@ -168,14 +183,19 @@ export default JSWooF.App1 = class extends Game {
             this.marioSprite.update(this.TargetElapsedTime);
             this.marioSprite.vel.Y += this.gravity * this.TargetElapsedTime;
         } else {
-            this.marioSprite.pos.X = 64;                                    // Reset animation
-            this.marioSprite.pos.Y = 80;
+            this.marioSprite.pos.X = 40;                                    // Reset animation
+            this.marioSprite.pos.Y = -174;
             this.marioSprite.vel.X = 0;
             this.marioSprite.vel.Y = 0;
         }
         
         if (this.tileCollider != undefined) {                               // test for collision
-            this.tileCollider.test(this.marioSprite);
+            let collidingSides;
+            collidingSides = this.tileCollider.testByStep(this.marioSprite, ["ground", "chance"], 15);
+            this.marioSprite.isFloating = !collidingSides.bottom;
+            if (collidingSides.top) {
+                this.marioSprite.jump.cancel();
+            }
         }
         
         super.update(gameTime);
@@ -201,7 +221,7 @@ export default JSWooF.App1 = class extends Game {
             }, this);
         }
         
-        this.marioSprite.draw(this.spriteBatch, 'idle');
+        this.marioSprite.draw(this.spriteBatch);
 
         this.spriteBatch.end();
         

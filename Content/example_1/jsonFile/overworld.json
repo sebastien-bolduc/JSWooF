@@ -1,0 +1,75 @@
+{
+    "imageURL": "/example_1/tiles.png",
+    "tileW": 16,
+    "tileH": 16,
+    
+    "tiles": [
+        {
+            "name": "ground",
+            "index": [0, 0]
+        },
+        {
+            "name": "sky",
+            "index": [48, 368]
+        },
+        {
+            "name": "chance",
+            "index": [384, 0]
+        },
+        {
+            "name": "chance-1",
+            "index": [384, 0]
+        },
+        {
+            "name": "chance-2",
+            "index": [400, 0]
+        },
+        {
+            "name": "chance-3",
+            "index": [416, 0]
+        },
+        {
+            "name": "coin",
+            "index": [384, 16]
+        },
+        {
+            "name": "coin-1",
+            "index": [384, 16]
+        },
+        {
+            "name": "coin-2",
+            "index": [400, 16]
+        },
+        {
+            "name": "coin-3",
+            "index": [416, 16]
+        }
+    ],
+    
+    "animations": [
+        {
+            "name": "chance",
+            "frameLength": 150,
+            "frames": [
+                "chance-1",
+                "chance-1",
+                "chance-1",
+                "chance-2",
+                "chance-3",
+                "chance-2"
+            ]
+        },
+        {
+            "name": "coin",
+            "frameLength": 150,
+            "frames": [
+                "coin-1",
+                "coin-1",
+                "coin-1",
+                "coin-2",
+                "coin-3",
+                "coin-2"
+            ]
+        }
+    ]
+}

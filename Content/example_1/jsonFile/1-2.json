@@ -1,4 +1,6 @@
 {
+    "tileSheet": "/example_1/jsonFile/underworld.json",
+    
     "background": [
         {
             "tile": "sky",

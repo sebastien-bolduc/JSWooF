@@ -53,6 +53,11 @@ export default JSWooF.Example.example_1.engine.TileResolver = class {
     toIndexRange(pos1, pos2) {
         const pMax = Math.ceil(pos2 / this.tileSize) * this.tileSize;
         const range = [];
+        
+        if (pos1 == undefined || pos2 == undefined) {
+            return range;
+        }
+        
         let pos = pos1;
         do {
             range.push(this.toIndex(pos));

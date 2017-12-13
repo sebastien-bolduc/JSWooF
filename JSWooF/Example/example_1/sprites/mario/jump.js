@@ -32,19 +32,14 @@ export default JSWooF.Example.example_1.sprites.mario.Jump = class extends Trait
     constructor() {
         super("jump");
         
-        this.duration = 0.5;
+        this.duration = 0.3;
         this.velocity = 200;
         this.engageTime = 0;
+        this.requestTime = 0;
+        this.gracePeriod = 0.1;
+        this.speedBoost = 0.3;
         
         this.isJumping = false;
-    }
-    
-    /**
-     * Gets the state of the jump.
-     * @returns {Boolean} True if jumping; false otherwise.
-     */
-    get IsJumping() {
-        return this.isJumping;
     }
      
     /**
@@ -52,8 +47,7 @@ export default JSWooF.Example.example_1.sprites.mario.Jump = class extends Trait
      * @function start
      */
     start() {
-        this.engageTime = this.duration;
-        this.isJumping = true;
+        this.requestTime = this.gracePeriod;
     }
     
     /**
@@ -62,7 +56,7 @@ export default JSWooF.Example.example_1.sprites.mario.Jump = class extends Trait
      */
     cancel() {
         this.engageTime = 0;
-        this.isJumping = false;
+        this.requestTime = 0;
     }
     
     /**
@@ -72,9 +66,20 @@ export default JSWooF.Example.example_1.sprites.mario.Jump = class extends Trait
      * @param {number} targetElapsedTime - Target elapsed time to update with.
      */
     update(entity, targetElapsedTime) {
+        if (this.requestTime > 0) {
+            if (this.isJumping) {
+                this.engageTime = this.duration;
+                this.requestTime = 0;
+            }
+            
+            this.requestTime -= targetElapsedTime;
+        }
+        
         if (this.engageTime > 0) {
-            entity.vel.Y = -this.velocity;
+            entity.vel.Y = -(this.velocity + Math.abs(entity.vel.X) * this.speedBoost);
             this.engageTime -= targetElapsedTime;
         }
+        
+        this.isJumping = !entity.isFloating;
     }
 };

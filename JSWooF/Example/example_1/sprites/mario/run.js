@@ -33,7 +33,13 @@ export default JSWooF.Example.example_1.sprites.mario.Run = class extends Trait 
         super("run");
         
         this.direction = 0;
-        this.velocity = 5000;
+        this.distance = 0;
+        
+        this.acceleration = 400;
+        this.deceleration = 300;
+        this.dragFactor = 1/5000;
+        
+        this.isRunning = false;
     }
     
     /**
@@ -43,6 +49,22 @@ export default JSWooF.Example.example_1.sprites.mario.Run = class extends Trait 
      * @param {number} targetElapsedTime - Target elapsed time to update with.
      */
     update(entity, targetElapsedTime) {
-        entity.vel.X = this.velocity * this.direction * targetElapsedTime;
+        const absVelocityX = Math.abs(entity.vel.X);
+        
+        if (this.direction != 0) {
+            entity.vel.X += this.acceleration * this.direction * targetElapsedTime;
+            this.isRunning = true;
+        } else if (entity.vel.X != 0) {
+            const decel = Math.min(absVelocityX, this.deceleration * targetElapsedTime);
+            entity.vel.X += entity.vel.X > 0 ? -decel : decel;
+        } else {
+            this.distance = 0;
+            this.isRunning = false;
+        }
+        
+        const drag = this.dragFactor * entity.vel.X * absVelocityX;
+        entity.vel.X -= drag;
+        
+        this.distance += absVelocityX * targetElapsedTime;
     }
 };

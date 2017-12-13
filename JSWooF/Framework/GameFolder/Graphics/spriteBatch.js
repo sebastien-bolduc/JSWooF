@@ -78,8 +78,9 @@ export default JSWooF.Framework.GameFolder.Graphics.SpriteBatch = class {
      * @param {Vector2} position - Position of the sprite.
      * @param {Array} source - Source of the sprite.
      * @param {number} scale - Sprite's scaling factor.
+     * @param {struc} effects - Effects to apply.
      */
-    draw(texture2D, position, source, scale) {
+    draw(texture2D, position, source, scale = 1, effects = {a: 1, b: 0, c: 0, d: 1}) {
         const sprite = this.sprite();
         
         const viewportX = Math.floor(this.GraphicsDevice.Viewport.X);
@@ -97,6 +98,7 @@ export default JSWooF.Framework.GameFolder.Graphics.SpriteBatch = class {
                 sprite.position = newPosition;
                 sprite.source = source;
                 sprite.scale = scale;
+                sprite.effects = effects;
         
                 this._batch.push(sprite);
             }
@@ -110,9 +112,16 @@ export default JSWooF.Framework.GameFolder.Graphics.SpriteBatch = class {
      */
     end() {
         this._batch.forEach(function(sprite) {
+            //this.GraphicsDevice.Context.drawImage(sprite.texture2D.getData(),
+            //    sprite.source.X, sprite.source.Y, sprite.source.Width, sprite.source.Height,
+            //    sprite.position.X, sprite.position.Y, sprite.source.Width * sprite.scale, sprite.source.Height * sprite.scale);
+            
+            this.GraphicsDevice.Context.setTransform(sprite.effects.a, sprite.effects.b, sprite.effects.c, sprite.effects.d,
+                sprite.position.X + ((sprite.effects.a == -1) ? sprite.source.Width : 0), sprite.position.Y + ((sprite.effects.d == -1) ? sprite.source.Height : 0));
             this.GraphicsDevice.Context.drawImage(sprite.texture2D.getData(),
                 sprite.source.X, sprite.source.Y, sprite.source.Width, sprite.source.Height,
-                sprite.position.X, sprite.position.Y, sprite.source.Width * sprite.scale, sprite.source.Height * sprite.scale);
+                0, 0, sprite.source.Width * sprite.scale, sprite.source.Height * sprite.scale);
+            this.GraphicsDevice.Context.setTransform(1, 0, 0, 1, 0, 0);
         }, this);
     }
 };

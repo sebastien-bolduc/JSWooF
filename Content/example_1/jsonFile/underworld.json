@@ -1,0 +1,47 @@
+{
+    "imageURL": "/example_1/tiles.png",
+    "tileW": 16,
+    "tileH": 16,
+    
+    "tiles": [
+        {
+            "name": "ground",
+            "index": [0, 32]
+        },
+        {
+            "name": "sky",
+            "index": [208, 48]
+        },
+        {
+            "name": "chance",
+            "index": [384, 32]
+        },
+        {
+            "name": "chance-1",
+            "index": [384, 32]
+        },
+        {
+            "name": "chance-2",
+            "index": [400, 32]
+        },
+        {
+            "name": "chance-3",
+            "index": [416, 32]
+        }
+    ],
+    
+    "animations": [
+        {
+            "name": "chance",
+            "frameLength": 150,
+            "frames": [
+                "chance-1",
+                "chance-1",
+                "chance-1",
+                "chance-2",
+                "chance-3",
+                "chance-2"
+            ]
+        }
+    ]
+}

@@ -41,10 +41,21 @@ export default JSWooF.Example.example_1.sprites.mario.Sprite = class extends Ent
         
         this._spriteMap = new Map();                        // Setup 'sprites' from 'sprites sheet'
         this._spriteMap.set("idle", {X: 209, Y: 0, Width: 18, Height: 18});
+        this._spriteMap.set("run-1", {X: 240, Y: 0, Width: 18, Height: 18});
+        this._spriteMap.set("run-2", {X: 269, Y: 0, Width: 18, Height: 18});
+        this._spriteMap.set("run-3", {X: 300, Y: 0, Width: 18, Height: 18});
+        this._spriteMap.set("jump-1", {X: 360, Y: 0, Width: 18, Height: 18});
+        this._spriteMap.set("break", {X: 330, Y: 0, Width: 18, Height: 18});
         
         this.addTrait(new Run());
         this.addTrait(new Jump());
         this.addTrait(new Velocity());
+        
+        this.runningFrame = ["run-1", "run-2", "run-3"];
+        this.jumpingFrame = ["jump-1"];
+        
+        this.isFacing = 1;
+        this.isFloating = false;
     }
     
     /**
@@ -68,9 +79,19 @@ export default JSWooF.Example.example_1.sprites.mario.Sprite = class extends Ent
      * Draw a sprite.
      * @function draw
      * @param {SpriteBatch} spriteBatch - Current SpriteBatch.
-     * @param {string} name - Name of the sprite.
      */
-    draw(spriteBatch, name) {
-        spriteBatch.draw(this._spriteSheet, this.pos, this._spriteMap.get(name), 1);
+    draw(spriteBatch) {
+        let frameName = "idle";
+        if (this.isFloating) {
+            frameName = this.jumpingFrame[0];
+        } else if (this.run.isRunning) {
+            if ((this.vel.X > 0 && this.run.direction < 0) || (this.vel.X < 0 && this.run.direction > 0)) {
+                frameName = "break";
+            } else {
+                frameName = this.runningFrame[Math.floor(this.run.distance / 10) % this.runningFrame.length];
+            }
+        }
+        
+        spriteBatch.draw(this._spriteSheet, this.pos, this._spriteMap.get(frameName), 1, {a: this.isFacing, b: 0, c: 0, d: 1});
     }
 };

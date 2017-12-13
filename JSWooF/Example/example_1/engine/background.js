@@ -33,9 +33,29 @@ export default JSWooF.Example.example_1.engine.Background = class {
         this._tileSheet = tileSheet;
         
         this._tileMap = new Map();
-        this._tileMap.set("sky", {X: 48, Y: 368, Width: 16, Height: 16});
-        this._tileMap.set("ground", {X: 0, Y: 0, Width: 16, Height: 16});
-        this._tileMap.set("chance", {X: 384, Y: 0, Width: 16, Height: 16});
+        this._animationMap = new Map();
+    }
+    
+    /**
+     * Load tile sheet from a JSON file.
+     * @function loadTileSheet
+     * @param {ContentManager} contentPipeline - The current content pipeline to work with.
+     * @param {string} tileSheet - The path to the tile sheet (content).
+     */
+    loadTileSheet(contentPipeline, tileSheet) {
+        var tileSheetSpec = contentPipeline.load['JSON'](contentPipeline.RootDirectory + tileSheet);
+        tileSheetSpec.isLoaded.then(sheetSpec => {
+            this._tileSheet = contentPipeline.load['Texture2D'](contentPipeline.RootDirectory + sheetSpec.imageURL);
+            sheetSpec.tiles.forEach(function(tile) {
+                this._tileMap.set(tile.name, {X: tile.index[0], Y: tile.index[1], Width: sheetSpec.tileW, Height: sheetSpec.tileH});
+            }, this);
+            
+            if (sheetSpec.animations != undefined) {
+                sheetSpec.animations.forEach(function(animation) {
+                    this._animationMap.set(animation.name, {"frames": animation.frames, "length": animation.frameLength});
+                }, this);
+            }
+        });
     }
     
     /**
@@ -46,10 +66,27 @@ export default JSWooF.Example.example_1.engine.Background = class {
      * @param {string} name - Name of the tile.
      */
     draw(spriteBatch, background, name) {
+        const currentTime = Date.now();
+        
         background.ranges.forEach(([x1, x2, y1, y2]) => {
-            for (let x = x1; x < x2; x++) {
-                for (let y = y1; y < y2; y++) {
-                    spriteBatch.draw(this._tileSheet, new Vector2(x * 16, y * 16), this._tileMap.get(name), 1);
+            if (this._tileMap.size > 0) {
+                for (let x = x1; x < x2; x++) {
+                    for (let y = y1; y < y2; y++) {
+                        if (this._animationMap.has(name)) {
+                            
+                            let frameLength = this._animationMap.get(name).length;
+                            let frameName = this._animationMap.get(name).frames[Math.floor(currentTime / frameLength) % 
+                                this._animationMap.get(name).frames.length];
+                            spriteBatch.draw(this._tileSheet, new Vector2(x * this._tileMap.get(frameName).Width, 
+                                y * this._tileMap.get(name).Height), this._tileMap.get(frameName), 1);
+                                
+                        } else {
+                            
+                            spriteBatch.draw(this._tileSheet, new Vector2(x * this._tileMap.get(name).Width, 
+                                y * this._tileMap.get(name).Height), this._tileMap.get(name), 1);
+                                
+                        }
+                    }
                 }
             }
         }, this);

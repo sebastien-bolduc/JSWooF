@@ -6,6 +6,7 @@
  * @version 0.0
  */
 
+import Entity from "/JSWooF/Example/example_1/engine/entity.js";
 import TileResolver from "/JSWooF/Example/example_1/engine/tileResolver.js";
 
 /**
@@ -113,9 +114,10 @@ export default JSWooF.Example.example_1.engine.TileCollider = class {
      * Test for a collision and resolve it.
      * @function test
      * @param {Entity} entity - The entity to test collision for.
+     * @param {Array} tileList - List of tile we can collide with.
      */
-    test(entity) {
-        const checkingCollisionXaxis = this.checkXrange(entity, ["ground", "chance"]);      // On X axis
+    test(entity, tileList) {
+        const checkingCollisionXaxis = this.checkXrange(entity, tileList);      // On X axis
         checkingCollisionXaxis.forEach(match => {                    
             if (entity.vel.X > 0) {
                 if (entity.pos.X + entity.size.X > match.x1) {
@@ -130,7 +132,7 @@ export default JSWooF.Example.example_1.engine.TileCollider = class {
             }
         });
         
-        const checkingCollisionYaxis = this.checkYrange(entity, ["ground", "chance"]);      // On Y axis
+        const checkingCollisionYaxis = this.checkYrange(entity, tileList);      // On Y axis
         checkingCollisionYaxis.forEach(match => {                    
             if (entity.vel.Y > 0) {
                 if (entity.pos.Y + entity.size.Y > match.y1) {
@@ -144,5 +146,116 @@ export default JSWooF.Example.example_1.engine.TileCollider = class {
                 }
             }
         });
+    }
+    
+    /**
+     * Test for a collision and resolve it.
+     * @function test
+     * @param {Entity} entity - The entity to test collision for.
+     * @param {Array} tileList - List of tile we can collide with.
+     * @param {number} fixeStep - Step to test for collision.
+     * @returns {struc} Telling where the collision has happened.
+     */
+    testByStep(entity, tileList, fixeStep) {
+        var stepEntity = new Entity();
+        var hasCollide = false;
+        
+        // ------------------------------ On X asix ----------------------------
+        stepEntity.pos = entity.lastPos;
+        stepEntity.lastPos = entity.lastPos;
+        stepEntity.vel = entity.vel;
+        stepEntity.size = entity.size;
+        
+        var stepDirectionX = 1;
+        if (entity.vel.X < 0) {
+            stepDirectionX = -1;
+        }
+        
+        do {
+            stepEntity.pos.X += fixeStep * stepDirectionX;
+            if (stepDirectionX == 1) {
+                if (stepEntity.pos.X >= entity.pos.X) {
+                    stepEntity.pos.X = entity.pos.X;
+                }
+            } else if (stepDirectionX == -1) {
+                if (stepEntity.pos.X <= entity.pos.X) {
+                    stepEntity.pos.X = entity.pos.X;
+                }
+            }
+            
+            const checkingCollisionXaxis = this.checkXrange(stepEntity, tileList);
+            checkingCollisionXaxis.forEach(match => {                    
+                if (stepEntity.vel.X > 0) {
+                    if (stepEntity.pos.X + stepEntity.size.X > match.x1) {
+                        entity.pos.X = match.x1 - entity.size.X;
+                        entity.lastPos.X = entity.pos.X;
+                        entity.vel.X = 0;
+                    }
+                } else if (stepEntity.vel.X < 0) {
+                    if (stepEntity.pos.X < match.x2) {
+                        entity.pos.X = match.x2;
+                        entity.lastPos.X = entity.pos.X;
+                        entity.vel.X = 0;
+                    }
+                }
+                
+                hasCollide = true;
+            });
+            
+            if (hasCollide) { break; }
+            
+        } while(stepEntity.pos.X != entity.pos.X);
+        // ---------------------------------------------------------------------
+        
+        // ------------------------------ On Y asix ----------------------------
+        hasCollide = false;
+        stepEntity.pos = entity.lastPos;
+        stepEntity.pos.X = entity.pos.X;            // Put in the corrected X position
+        stepEntity.lastPos = entity.lastPos;
+        stepEntity.vel = entity.vel;
+        stepEntity.size = entity.size;
+        
+        var stepDirectionY = 1;
+        if (entity.vel.Y < 0) {
+            stepDirectionY = -1;
+        }
+        
+        do {
+            stepEntity.pos.Y += fixeStep * stepDirectionY;
+            if (stepDirectionY == 1) {
+                if (stepEntity.pos.Y >= entity.pos.Y) {
+                    stepEntity.pos.Y = entity.pos.Y;
+                }
+            } else if (stepDirectionY == -1) {
+                if (stepEntity.pos.Y <= entity.pos.Y) {
+                    stepEntity.pos.Y = entity.pos.Y;
+                }
+            }
+        
+            const checkingCollisionYaxis = this.checkYrange(stepEntity, tileList);      
+            checkingCollisionYaxis.forEach(match => {                    
+                if (stepEntity.vel.Y > 0) {
+                    if (stepEntity.pos.Y + stepEntity.size.Y > match.y1) {
+                        entity.pos.Y = match.y1 - entity.size.Y;
+                        entity.lastPos.Y = entity.pos.Y;
+                        entity.vel.Y = 0;
+                    }
+                } else if (stepEntity.vel.Y < 0) {
+                    if (stepEntity.pos.Y < match.y2) {
+                        entity.pos.Y = match.y2;
+                        entity.lastPos.Y = entity.pos.Y;
+                        entity.vel.Y = 0;
+                    }
+                }
+                
+                hasCollide = true;
+            });
+            
+            if (hasCollide) { break; }
+            
+        } while(stepEntity.pos.Y != entity.pos.Y);
+        // ---------------------------------------------------------------------
+        
+        return ({top: (hasCollide && (stepDirectionY == -1)) ? true : false, bottom: (hasCollide && (stepDirectionY == 1)) ? true : false});
     }
 };
