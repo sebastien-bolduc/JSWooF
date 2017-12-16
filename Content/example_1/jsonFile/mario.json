@@ -1,0 +1,44 @@
+{
+    "imageURL": "/example_1/mario.png",
+    "spriteW": 18,
+    "spriteH": 18,
+    
+    "sprites": [
+        {
+            "name": "idle",
+            "index": [209, 0]
+        },
+        {
+            "name": "run-1",
+            "index": [240, 0]
+        },
+        {
+            "name": "run-2",
+            "index": [269, 0]
+        },
+        {
+            "name": "run-3",
+            "index": [300, 0]
+        },
+        {
+            "name": "jump",
+            "index": [360, 0]
+        },
+        {
+            "name": "break",
+            "index": [330, 0]
+        }
+    ],
+    
+    "animations": [
+        {
+            "name": "run",
+            "frameLength": 10,
+            "frames": [
+                "run-1",
+                "run-2",
+                "run-3"
+            ]
+        }
+    ]
+}

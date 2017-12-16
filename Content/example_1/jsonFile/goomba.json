@@ -1,0 +1,31 @@
+{
+    "imageURL": "/example_1/enemies.png",
+    "spriteW": 16,
+    "spriteH": 16,
+    
+    "sprites": [
+        {
+            "name": "walk-1",
+            "index": [0, 16]
+        },
+        {
+            "name": "walk-2",
+            "index": [16, 16]
+        },
+        {
+            "name": "flat",
+            "index": [32, 16]
+        }
+    ],
+    
+    "animations": [
+        {
+            "name": "walk",
+            "frameLength": 200,
+            "frames": [
+                "walk-1",
+                "walk-2"
+            ]
+        }
+    ]
+}

@@ -6,16 +6,16 @@
  * @version 0.0
  */
 
-import Background from "/JSWooF/Example/example_1/engine/background.js";
 import Game from "/JSWooF/Framework/GameFolder/game.js";
 import GraphicsDeviceManager from "/JSWooF/Framework/GameFolder/graphicsDeviceManager.js";
+import GoombaSprite from "/JSWooF/Example/example_1/sprites/enemies/goomba/goombaSprite.js";
 import Keyboard from "/JSWooF/Framework/Input/keyboard.js";
-import MarioSprite from "/JSWooF/Example/example_1/sprites/mario/sprite.js";
-import Matrix from "/JSWooF/Framework/GameFolder/matrix.js";
+import KoopaSprite from "/JSWooF/Example/example_1/sprites/enemies/koopa/koopaSprite.js";
+import Level from "/JSWooF/Example/example_1/engine/level.js";
+import MarioSprite from "/JSWooF/Example/example_1/sprites/mario/marioSprite.js";
 import Menu from "/JSWooF/Example/global/menu.js";
 import Mouse from "/JSWooF/Framework/Input/mouse.js";
 import SpriteBatch from "/JSWooF/Framework/GameFolder/Graphics/spriteBatch.js";
-import TileCollider from "/JSWooF/Example/example_1/engine/tileCollider.js";
 import Viewport from "/JSWooF/Framework/GameFolder/Graphics/viewport.js";
 
 /**
@@ -63,17 +63,16 @@ export default JSWooF.App1 = class extends Game {
         this.GraphicsDevice.Viewport.TileSafeArea.X = 100;
         this.GraphicsDevice.Viewport.TileSafeArea.Y = 100;
         
-        this.marioSprite = new MarioSprite();                               // Mario sprite
-        this.marioSprite.pos.X = 40;
-        this.marioSprite.pos.Y = -174;
-        this.marioSprite.vel.X = 0; // 200
-        this.marioSprite.vel.Y = 0; // -600
+        this.level = undefined;                                             // Level
+        
+        this.mario = undefined;                                             // Mario
+        
+        this.goombas = [];                                                  // Enemies
+        this.koopas = [];
         
         this.gravity = 1500;                                                // Game gravity
         
-        this.tiles = new Matrix();
-        
-        this.background = new Background();                                 // Background layer
+        this.sprites = [];                                                  // For debugging
     }
     
     /**
@@ -87,23 +86,33 @@ export default JSWooF.App1 = class extends Game {
         this.spriteBatch = new SpriteBatch(this.GraphicsDevice);
         
         // Loading our levels...
-        this.level = this.Content.load['JSON'](this.Content.RootDirectory + "/example_1/jsonFile/1-1.json");
-        this.level.isLoaded.then(data => {
-            data.background.forEach(function(background) {
-                background.ranges.forEach(([x1, x2, y1, y2]) => {
-                    for (let x = x1; x < x2; x++) {
-                        for (let y = y1; y < y2; y++) {
-                            this.tiles.set(x, y, {
-                                name: background.tile
-                            });
-                        }
-                    }
-                });
-            }, this);
-            this.tileCollider = new TileCollider(this.tiles);
-            // --------------------------- Collision layer (debugging) ---------
+        this.level = new Level(this.Content, "/example_1/jsonFile/1-1.json");
+        
+        // Loading our sprites...
+        this.mario = new MarioSprite(this.Content);                                     // Mario
+        this.mario.pos.X = 40;
+        this.mario.pos.Y = -174;
+        this.mario.vel.X = 0;
+        this.mario.vel.Y = 0;
+        
+        this.goombas.push(new GoombaSprite(this.Content));                              // Enemies
+        this.goombas.push(new GoombaSprite(this.Content));
+        this.goombas[1].pos.X = 160;
+        this.goombas[1].pos.Y = 320;
+        this.goombas.push(new GoombaSprite(this.Content));
+        this.goombas[2].pos.X = 192;
+        this.goombas[2].pos.Y = 0;
+        
+        this.koopas.push(new KoopaSprite(this.Content));
+        this.koopas.push(new KoopaSprite(this.Content));
+        this.koopas[1].pos.X = 600;
+        this.koopas[1].pos.Y = 0;
+        
+        // Debugging layer...
+        // --------------------------- Collision layer (debugging) -------------
+        Promise.all([this.level.isLoaded]).then(values => {
             this.cl_resolvedTiles = [];
-            this.cl_tileResolver = this.tileCollider.tiles;
+            this.cl_tileResolver = this.level.tileCollider.tiles;
             this.cl_tileSize = this.cl_tileResolver.tileSize;
             this.cl_getByIndexOriginal = this.cl_tileResolver.getByIndex;
             
@@ -112,14 +121,11 @@ export default JSWooF.App1 = class extends Game {
                 that.cl_resolvedTiles.push({x, y});
                 return that.cl_getByIndexOriginal.call(that.cl_tileResolver, x, y);     // Using 'call' for the 'this' reference
             };
-            // -----------------------------------------------------------------
-            
-            this.background.loadTileSheet(this.Content, data.tileSheet);                // Loading our tiles...
         });
-        
-        // Loading our sprites...
-        var marioSpriteSheet = this.Content.load['Texture2D'](this.Content.RootDirectory + "/example_1/mario.png");
-        this.marioSprite.setSpriteSheet(marioSpriteSheet);
+        // ---------------------------------------------------------------------
+        this.sriptes = this.sprites.push(this.mario);
+        this.sprites = this.sprites.concat(this.goombas);
+        this.sprites = this.sprites.concat(this.koopas);
     }
     
     /**
@@ -135,27 +141,27 @@ export default JSWooF.App1 = class extends Game {
         
         var keyboardState = this.keyboardInput.GetState;                    // This part handle the keyboard inputs...
         if (keyboardState.isKeyDown(keyboardState.Keys.SPACE) && !this.previousKeyboardState.get(keyboardState.Keys.SPACE)) {
-            this.marioSprite.jump.start();
+            this.mario.jump.start();
             this.previousKeyboardState.set("Space", true);
         } else if (keyboardState.isKeyUp(keyboardState.Keys.SPACE) && this.previousKeyboardState.get(keyboardState.Keys.SPACE)) {
-            this.marioSprite.jump.cancel();
+            this.mario.jump.cancel();
             this.previousKeyboardState.set("Space", false);
         }
         
         if (keyboardState.isKeyDown(keyboardState.Keys.D)) {                // Walking
-            this.marioSprite.run.direction = 1;
-            this.marioSprite.isFacing = 1;
+            this.mario.run.direction = 1;
+            this.mario.isFacing = 1;
         } else if (keyboardState.isKeyDown(keyboardState.Keys.A)) {
-            this.marioSprite.run.direction = -1;
-            this.marioSprite.isFacing = -1;
+            this.mario.run.direction = -1;
+            this.mario.isFacing = -1;
         } else {
-            this.marioSprite.run.direction = 0;
+            this.mario.run.direction = 0;
         }
         
         if (keyboardState.isKeyDown(keyboardState.Keys.SHIFTLEFT)) {        // Running
-            this.marioSprite.run.dragFactor = 1/5000;
+            this.mario.run.dragFactor = 1/5000;
         } else {
-            this.marioSprite.run.dragFactor = 1/1000;
+            this.mario.run.dragFactor = 1/1000;
         }
         
         if (keyboardState.isKeyDown(keyboardState.Keys.ARROWLEFT)) {        // Scrolling the camera (viewport)
@@ -166,36 +172,74 @@ export default JSWooF.App1 = class extends Game {
             this.GraphicsDevice.Viewport.Y -= 100 * this.TargetElapsedTime;
         } else if (keyboardState.isKeyDown(keyboardState.Keys.ARROWDOWN)) {
             this.GraphicsDevice.Viewport.Y += 100 * this.TargetElapsedTime;
-        } else {
-            this.GraphicsDevice.Viewport.X = this.marioSprite.pos.X - 186;  // Scrolling the camera with Mario
-            this.GraphicsDevice.Viewport.Y = this.marioSprite.pos.Y - 154;
+        } else {                                                            // Scrolling the camera with Mario
+            this.GraphicsDevice.Viewport.X = this.mario.pos.X - ((this.GraphicsDevice.Viewport.Width / 2) - (this.mario.size.X / 2));
+            this.GraphicsDevice.Viewport.Y = this.mario.pos.Y - ((this.GraphicsDevice.Viewport.Height / 2) - (this.mario.size.Y / 2));
         }
         
         var mouseState = this.mouseInput.GetState;                          // This part handle the mouse inputs...
         if (mouseState.LeftButton) {
-            this.marioSprite.pos.X = mouseState.X + this.GraphicsDevice.Viewport.X - this.GraphicsDevice.Viewport.TileSafeArea.X;
-            this.marioSprite.pos.Y = mouseState.Y + this.GraphicsDevice.Viewport.Y - this.GraphicsDevice.Viewport.TileSafeArea.Y;
-            this.marioSprite.vel.X = 0;
-            this.marioSprite.vel.Y = 0;
+            this.mario.pos.X = mouseState.X + this.GraphicsDevice.Viewport.X - this.GraphicsDevice.Viewport.TileSafeArea.X;
+            this.mario.pos.Y = mouseState.Y + this.GraphicsDevice.Viewport.Y - this.GraphicsDevice.Viewport.TileSafeArea.Y;
+            this.mario.vel.X = 0;
+            this.mario.vel.Y = 0;
         }
         
-        if (this.marioSprite.pos.Y < 640) {                                 // Moving mario
-            this.marioSprite.update(this.TargetElapsedTime);
-            this.marioSprite.vel.Y += this.gravity * this.TargetElapsedTime;
-        } else {
-            this.marioSprite.pos.X = 40;                                    // Reset animation
-            this.marioSprite.pos.Y = -174;
-            this.marioSprite.vel.X = 0;
-            this.marioSprite.vel.Y = 0;
-        }
-        
-        if (this.tileCollider != undefined) {                               // test for collision
-            let collidingSides;
-            collidingSides = this.tileCollider.testByStep(this.marioSprite, ["ground", "chance"], 15);
-            this.marioSprite.isFloating = !collidingSides.bottom;
-            if (collidingSides.top) {
-                this.marioSprite.jump.cancel();
+        if (this.level.isReady) {                                           // When the level is ready...
+            if (this.mario.pos.Y < 640) {                                   // Moving mario
+                this.mario.update(this.TargetElapsedTime);
+                this.mario.vel.Y += this.gravity * this.TargetElapsedTime;
+            } else {
+                this.mario.pos.X = 40;                                      // Reset mario
+                this.mario.pos.Y = -174;
+                this.mario.vel.X = 0;
+                this.mario.vel.Y = 0;
             }
+        
+            let collidingSides;                                             // Test for collision
+            collidingSides = this.level.tileCollider.testByStep(this.mario, ["ground", "chance", "pipe"], 
+                (this.level.tileCollider.tiles.tileSize - 1));
+            this.mario.isFloating = !collidingSides.bottom;
+            if (collidingSides.top) {
+                this.mario.jump.cancel();
+            }
+        
+            this.goombas.forEach(function(goomba) {                             
+                goomba.update(this.TargetElapsedTime);                      // Moving goombas
+                goomba.vel.X = 1500 * this.TargetElapsedTime * goomba.direction;
+                goomba.vel.Y += this.gravity * this.TargetElapsedTime;
+            
+                let collidingSides;                                         // Testing goombas for collision
+                collidingSides = this.level.tileCollider.testByStep(goomba, ["ground", "chance", "pipe"], 
+                    (this.level.tileCollider.tiles.tileSize - 1));
+                if (collidingSides.right)
+                {
+                    goomba.direction = -1;
+                } else if (collidingSides.left) {
+                    goomba.direction = 1;
+                }
+            }, this);
+        
+            this.koopas.forEach(function(koopa) {                             
+                koopa.update(this.TargetElapsedTime);                       // Moving koopas
+                koopa.vel.X = 1500 * this.TargetElapsedTime * koopa.direction;
+                koopa.vel.Y += this.gravity * this.TargetElapsedTime;
+            
+                let collidingSides;                                         // Testing koopas for collision
+                collidingSides = this.level.tileCollider.testByStep(koopa, ["ground", "chance", "pipe"], 
+                    (this.level.tileCollider.tiles.tileSize - 1));
+                if (collidingSides.right)
+                {
+                    koopa.direction = -1;
+                } else if (collidingSides.left) {
+                    koopa.direction = 1;
+                }
+            }, this);
+        } else {
+            this.mario.pos.X = 40;                                          // Reset mario
+            this.mario.pos.Y = -174;
+            this.mario.vel.X = 0;
+            this.mario.vel.Y = 0;
         }
         
         super.update(gameTime);
@@ -215,13 +259,18 @@ export default JSWooF.App1 = class extends Game {
         this.graphics.GraphicsDevice.clear();
         this.spriteBatch.begin();
         
-        if (this.level.getData() != null) {
-            this.level.getData().background.forEach(function(background) {
-                this.background.draw(this.spriteBatch, background, background.tile);
+        if (this.level.isReady) {
+            this.level.background.draw(this.spriteBatch, this.level.getData(), this.level.getData().background);    // Drawing background
+        
+            this.mario.draw(this.spriteBatch);                                                                      // Drawing Mario
+        
+            this.goombas.forEach(function(goomba) {                                                                 // Drawing Enemies
+                goomba.draw(this.spriteBatch);                                 
+            }, this);
+            this.koopas.forEach(function(koopa) {
+                koopa.draw(this.spriteBatch);                                 
             }, this);
         }
-        
-        this.marioSprite.draw(this.spriteBatch);
 
         this.spriteBatch.end();
         
@@ -247,20 +296,22 @@ export default JSWooF.App1 = class extends Game {
             }, this);
             
             // *************************** Camera ******************************
-            var spriteXpos = this.marioSprite.pos.X;                // Mario
-            var spriteYpos = this.marioSprite.pos.Y;
-            const cameraXposSprite = Math.floor(this.GraphicsDevice.Viewport.X);
-            const cameraYposSprite = Math.floor(this.GraphicsDevice.Viewport.Y);
-            if (spriteXpos >= cameraXposSprite && spriteXpos <= (cameraXposSprite + this.GraphicsDevice.Viewport.Width)) {
-                if (spriteYpos >= cameraYposSprite && spriteYpos <= (cameraYposSprite + this.GraphicsDevice.Viewport.Height)) {
-                    spriteXpos += this.GraphicsDevice.Viewport.TileSafeArea.X - cameraXposSprite;
-                    spriteYpos += this.GraphicsDevice.Viewport.TileSafeArea.Y - cameraYposSprite;
-                    this.GraphicsDevice.Context.beginPath();
-                    this.GraphicsDevice.Context.strokeStyle = "red";
-                    this.GraphicsDevice.Context.rect(spriteXpos, spriteYpos, this.marioSprite.size.X, this.marioSprite.size.Y);
-                    this.GraphicsDevice.Context.stroke();
-                }
-            }
+            this.sprites.forEach(function(sprite) {
+                var spriteXpos = sprite.pos.X;                      // Sprites
+                var spriteYpos = sprite.pos.Y;
+                const cameraXposSprite = Math.floor(this.GraphicsDevice.Viewport.X);
+                const cameraYposSprite = Math.floor(this.GraphicsDevice.Viewport.Y);
+                if (spriteXpos >= cameraXposSprite && spriteXpos <= (cameraXposSprite + this.GraphicsDevice.Viewport.Width)) {
+                    if (spriteYpos >= cameraYposSprite && spriteYpos <= (cameraYposSprite + this.GraphicsDevice.Viewport.Height)) {
+                        spriteXpos += this.GraphicsDevice.Viewport.TileSafeArea.X - cameraXposSprite;
+                        spriteYpos += this.GraphicsDevice.Viewport.TileSafeArea.Y - cameraYposSprite;
+                        this.GraphicsDevice.Context.beginPath();
+                        this.GraphicsDevice.Context.strokeStyle = "red";
+                        this.GraphicsDevice.Context.rect(spriteXpos, spriteYpos, sprite.size.X, sprite.size.Y);
+                        this.GraphicsDevice.Context.stroke();
+                    }
+                }   
+            }, this);
             // *****************************************************************
             
             this.GraphicsDevice.Context.beginPath();                // Camera view

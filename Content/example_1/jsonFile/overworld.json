@@ -43,6 +43,46 @@
         {
             "name": "coin-3",
             "index": [416, 16]
+        },
+        {
+            "name": "pipe-insert-vert-left",
+            "index": [0, 128]
+        },
+        {
+            "name": "pipe-insert-vert-right",
+            "index": [16, 128]
+        },
+        {
+            "name": "pipe-vert-left",
+            "index": [0, 144]
+        },
+        {
+            "name": "pipe-vert-right",
+            "index": [16, 144]
+        },
+        {
+            "name": "cloud-1",
+            "index": [0, 320]
+        },
+        {
+            "name": "cloud-2",
+            "index": [16, 320]
+        },
+        {
+            "name": "cloud-3",
+            "index": [32, 320]
+        },
+        {
+            "name": "cloud-4",
+            "index": [0, 336]
+        },
+        {
+            "name": "cloud-5",
+            "index": [16, 336]
+        },
+        {
+            "name": "cloud-6",
+            "index": [32, 336]
         }
     ],
     

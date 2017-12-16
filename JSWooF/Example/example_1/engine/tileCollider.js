@@ -158,7 +158,7 @@ export default JSWooF.Example.example_1.engine.TileCollider = class {
      */
     testByStep(entity, tileList, fixeStep) {
         var stepEntity = new Entity();
-        var hasCollide = false;
+        var hasCollideX = false;
         
         // ------------------------------ On X asix ----------------------------
         stepEntity.pos = entity.lastPos;
@@ -199,16 +199,16 @@ export default JSWooF.Example.example_1.engine.TileCollider = class {
                     }
                 }
                 
-                hasCollide = true;
+                hasCollideX = true;
             });
             
-            if (hasCollide) { break; }
+            if (hasCollideX) { break; }
             
         } while(stepEntity.pos.X != entity.pos.X);
         // ---------------------------------------------------------------------
         
         // ------------------------------ On Y asix ----------------------------
-        hasCollide = false;
+        var hasCollideY = false;
         stepEntity.pos = entity.lastPos;
         stepEntity.pos.X = entity.pos.X;            // Put in the corrected X position
         stepEntity.lastPos = entity.lastPos;
@@ -248,14 +248,17 @@ export default JSWooF.Example.example_1.engine.TileCollider = class {
                     }
                 }
                 
-                hasCollide = true;
+                hasCollideY = true;
             });
             
-            if (hasCollide) { break; }
+            if (hasCollideY) { break; }
             
         } while(stepEntity.pos.Y != entity.pos.Y);
         // ---------------------------------------------------------------------
         
-        return ({top: (hasCollide && (stepDirectionY == -1)) ? true : false, bottom: (hasCollide && (stepDirectionY == 1)) ? true : false});
+        return ({left: (hasCollideX && (stepDirectionX == -1)) ? true : false, 
+                 right: (hasCollideX && (stepDirectionX == 1)) ? true : false,
+                 top: (hasCollideY && (stepDirectionY == -1)) ? true : false, 
+                 bottom: (hasCollideY && (stepDirectionY == 1)) ? true : false});
     }
 };
