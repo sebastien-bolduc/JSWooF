@@ -1,7 +1,7 @@
 /**
- * Handle velocity stuff for Mario.
+ * Handle stomper stuff for Mario.
  *
- * @module Velocity
+ * @module Stomper
  * @author Sébastien Bolduc
  * @version 0.0
  */
@@ -9,7 +9,7 @@
  import Trait from "/JSWooF/Example/example_1/engine/trait.js";
  
  /**
- * Namespace for the velocity.
+ * Namespace for the stomper.
  * (We take the time to check if all namespaces are already created)
  * @namespace JSWooF.Example.example_1.sprites.mario
  */
@@ -20,30 +20,40 @@ JSWooF.Example.example_1.sprites = JSWooF.Example.example_1.sprites || {};
 JSWooF.Example.example_1.sprites.mario = JSWooF.Example.example_1.sprites.mario || {};
 
 /**
- * Handle velocity stuff for Mario.
+ * Handle stomper stuff for Mario.
  * @class
- * @classdesc Handle velocity stuff for Mario.
+ * @classdesc Handle stomper stuff for Mario.
  */
-export default JSWooF.Example.example_1.sprites.mario.Velocity = class extends Trait {
+export default JSWooF.Example.example_1.sprites.mario.Stomper = class extends Trait {
     /**
-     * Initialize the velocity trait.
-     * @constructs Velocity
+     * Initialize the stomper trait.
+     * @constructs Stomper
      */
     constructor() {
-        super("velocity");
+        super("stomper");
+        
+        this.queueBounce = false;
     }
     
     /**
-     * Update the velocity trait.
+     * Enable a bounce after stomping something.
+     * @function bounce
+     */
+    bounce() {
+        this.queueBounce = true;
+    }
+    
+    /**
+     * Update the stomper trait.
      * @function update
      * @param {Entity} entity - The entity to update.
      * @param {number} targetElapsedTime - Target elapsed time to update with.
      */
-    update(entity, targetElapsedTime) {
-        entity.lastPos.X = entity.pos.X;            // For collision detection
-        entity.lastPos.Y = entity.pos.Y;
+    update(entity) {
+        if (entity.stomper.queueBounce) {
+            entity.vel.Y = -300;
+            entity.stomper.queueBounce = false;
+        }
         
-        entity.pos.X += entity.vel.X * targetElapsedTime;
-        entity.pos.Y += entity.vel.Y * targetElapsedTime;
     }
 };

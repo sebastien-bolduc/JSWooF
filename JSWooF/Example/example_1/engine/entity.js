@@ -6,6 +6,7 @@
  * @version 0.0
  */
 
+import Rectangle from "/JSWooF/Framework/GameFolder/rectangle.js";
 import Vector2 from "/JSWooF/Framework/GameFolder/vector2.js";
  
 /**
@@ -32,6 +33,7 @@ export default JSWooF.Example.example_1.engine.Entity = class {
         this.pos = new Vector2(0, 0);
         this.vel = new Vector2(0, 0);
         this.size = new Vector2(0, 0);
+        this.bounds = new Rectangle();
         
         this.lastPos = new Vector2(0, 0);            // For collision detection
         
@@ -46,6 +48,17 @@ export default JSWooF.Example.example_1.engine.Entity = class {
     addTrait(trait) {
         this.traits.push(trait);
         this[trait.name] = trait;
+    }
+    
+    /**
+     * Resolve a collision with an other entity.
+     * @function collides
+     * @param {Entity} candidate - The entity to check collision with.
+     */
+    collides(candidate) {
+        this.traits.forEach(function(trait) {
+            trait.collides(this, candidate);
+        }, this);
     }
     
     /**

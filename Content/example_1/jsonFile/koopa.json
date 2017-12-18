@@ -11,6 +11,14 @@
         {
             "name": "walk-2",
             "index": [112, 0]
+        },
+        {
+            "name": "stun",
+            "index": [160, 0]
+        },
+        {
+            "name": "waking",
+            "index": [176, 0]
         }
     ],
     
@@ -21,6 +29,14 @@
             "frames": [
                 "walk-1",
                 "walk-2"
+            ]
+        },
+        {
+            "name": "wakingUp",
+            "frameLength": 200,
+            "frames": [
+                "stun",
+                "waking"
             ]
         }
     ]

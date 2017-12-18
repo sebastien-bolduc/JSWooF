@@ -32,11 +32,19 @@ export default JSWooF.Example.example_1.engine.Trait = class {
     }
     
     /**
+     * Resolve collision with the trait.
+     * @param {Entity} subject - The entity who has collide.
+     * @param {Entity} candidate - The entity to check collision with.
+     */
+    // Must be overridden. https://www.sitepoint.com/object-oriented-javascript-deep-dive-es6-classes/
+    collides(subject, candidate) {
+    }
+    
+    /**
      * Update the trait
      * @function update
      */
     // Must be overridden. https://www.sitepoint.com/object-oriented-javascript-deep-dive-es6-classes/
     update() {
-        console.warn("Unhandled update call in Trait.");
     }
 };

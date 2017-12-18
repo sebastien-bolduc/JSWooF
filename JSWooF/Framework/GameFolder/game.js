@@ -196,6 +196,9 @@ export default JSWooF.Framework.GameFolder.Game = class {
         
         if (this.IsFixedTimeStep) {                                                 // Accumulated pattern (timing)
             this._accumulatedTime += this._gameTime.elapsedGameTime.totalSeconds;
+            if (this._accumulatedTime > 1) {                                        // ... Limiting it to 1 second
+                this._accumulatedTime = 1;
+            }
             while (this._accumulatedTime > this.TargetElapsedTime) {
                 this.update(this._gameTime);
                 this._accumulatedTime -= this.TargetElapsedTime;

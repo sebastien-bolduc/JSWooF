@@ -66,20 +66,20 @@ export default JSWooF.Example.example_1.sprites.mario.Jump = class extends Trait
      * @param {number} targetElapsedTime - Target elapsed time to update with.
      */
     update(entity, targetElapsedTime) {
-        if (this.requestTime > 0) {
-            if (this.isJumping) {
-                this.engageTime = this.duration;
-                this.requestTime = 0;
+        if (entity.jump.requestTime > 0) {
+            if (entity.jump.isJumping) {
+                entity.jump.engageTime = entity.jump.duration;
+                entity.jump.requestTime = 0;
             }
             
-            this.requestTime -= targetElapsedTime;
+            entity.jump.requestTime -= targetElapsedTime;
         }
         
-        if (this.engageTime > 0) {
-            entity.vel.Y = -(this.velocity + Math.abs(entity.vel.X) * this.speedBoost);
-            this.engageTime -= targetElapsedTime;
+        if (entity.jump.engageTime > 0) {
+            entity.vel.Y = -(entity.jump.velocity + Math.abs(entity.vel.X) * entity.jump.speedBoost);
+            entity.jump.engageTime -= targetElapsedTime;
         }
         
-        this.isJumping = !entity.isFloating;
+        entity.jump.isJumping = !entity.isFloating;
     }
 };

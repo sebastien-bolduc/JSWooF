@@ -6,9 +6,11 @@
  * @version 0.0
  */
  
-import Sprite from "/JSWooF/Example/example_1/engine/sprite.js";
 import Jump from "/JSWooF/Example/example_1/sprites/mario/jump.js";
 import Run from "/JSWooF/Example/example_1/sprites/mario/run.js";
+import Sprite from "/JSWooF/Example/example_1/engine/sprite.js";
+import Status from "/JSWooF/Example/example_1/sprites/mario/status.js";
+import Stomper from "/JSWooF/Example/example_1/sprites/mario/stomper.js";
 import Velocity from "/JSWooF/Example/example_1/engine/velocity.js";
 
 /**
@@ -38,12 +40,15 @@ export default JSWooF.Example.example_1.sprites.mario.MarioSprite = class extend
         
         this.size.X = 16;
         this.size.Y = 16;
+        this.bounds.Size = this.size;
         
         this.loadSpriteSheet(contentPipeline, "/example_1/jsonFile/mario.json");
         
+        this.addTrait(new Stomper());
         this.addTrait(new Run());
         this.addTrait(new Jump());
         this.addTrait(new Velocity());
+        this.addTrait(new Status());
         
         this.isFacing = 1;
         this.isFloating = false;
@@ -56,7 +61,9 @@ export default JSWooF.Example.example_1.sprites.mario.MarioSprite = class extend
      */
     draw(spriteBatch) {
         let frameName = "idle";
-        if (this.isFloating) {
+        if (this.status.isDead) {
+            frameName = "dead";
+        } else if (this.isFloating) {
             frameName = "jump";
         } else if (this.run.isRunning) {
             if ((this.vel.X > 0 && this.run.direction < 0) || (this.vel.X < 0 && this.run.direction > 0)) {

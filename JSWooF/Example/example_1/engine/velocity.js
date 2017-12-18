@@ -44,5 +44,7 @@ export default JSWooF.Example.example_1.engine.Velocity = class extends Trait {
         
         entity.pos.X += entity.vel.X * targetElapsedTime;
         entity.pos.Y += entity.vel.Y * targetElapsedTime;
+        
+        entity.bounds.Location = entity.pos;
     }
 };

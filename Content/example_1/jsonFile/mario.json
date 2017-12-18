@@ -27,6 +27,10 @@
         {
             "name": "break",
             "index": [330, 0]
+        },
+        {
+            "name": "dead",
+            "index": [0, 16]
         }
     ],
     

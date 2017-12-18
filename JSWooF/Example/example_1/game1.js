@@ -6,6 +6,7 @@
  * @version 0.0
  */
 
+import EntityCollider from "/JSWooF/Example/example_1/engine/entityCollider.js";
 import Game from "/JSWooF/Framework/GameFolder/game.js";
 import GraphicsDeviceManager from "/JSWooF/Framework/GameFolder/graphicsDeviceManager.js";
 import GoombaSprite from "/JSWooF/Example/example_1/sprites/enemies/goomba/goombaSprite.js";
@@ -70,9 +71,11 @@ export default JSWooF.App1 = class extends Game {
         this.goombas = [];                                                  // Enemies
         this.koopas = [];
         
-        this.gravity = 1500;                                                // Game gravity
+        this.sprites = [];                                                  // All game sprites
         
-        this.sprites = [];                                                  // For debugging
+        this.entityCollider = undefined;                                    // For checking entities collision
+        
+        this.gravity = 1500;                                                // Game gravity
     }
     
     /**
@@ -90,23 +93,40 @@ export default JSWooF.App1 = class extends Game {
         
         // Loading our sprites...
         this.mario = new MarioSprite(this.Content);                                     // Mario
-        this.mario.pos.X = 40;
+        this.mario.pos.X = 100;
         this.mario.pos.Y = -174;
         this.mario.vel.X = 0;
         this.mario.vel.Y = 0;
         
-        this.goombas.push(new GoombaSprite(this.Content));                              // Enemies
+        this.goombas.push(new GoombaSprite(this.Content));                              // Goomba
         this.goombas.push(new GoombaSprite(this.Content));
         this.goombas[1].pos.X = 160;
         this.goombas[1].pos.Y = 320;
         this.goombas.push(new GoombaSprite(this.Content));
-        this.goombas[2].pos.X = 192;
-        this.goombas[2].pos.Y = 0;
+        this.goombas[2].pos.X = 180;
+        this.goombas[2].pos.Y = 320;
+        this.goombas.push(new GoombaSprite(this.Content));
+        this.goombas[3].pos.X = 200;
+        this.goombas[3].pos.Y = 320;
+        this.goombas.push(new GoombaSprite(this.Content));
+        this.goombas[4].pos.X = 140;
+        this.goombas[4].pos.Y = 320;
+        this.goombas.push(new GoombaSprite(this.Content));
+        this.goombas[5].pos.X = 192;
+        this.goombas[5].pos.Y = 0;
         
-        this.koopas.push(new KoopaSprite(this.Content));
+        this.koopas.push(new KoopaSprite(this.Content));                                // Koopa
         this.koopas.push(new KoopaSprite(this.Content));
         this.koopas[1].pos.X = 600;
         this.koopas[1].pos.Y = 0;
+        this.koopas.push(new KoopaSprite(this.Content));
+        this.koopas[2].pos.X = 600;
+        this.koopas[2].pos.Y = 320;
+        
+        this.sriptes = this.sprites.push(this.mario);                                   // All game sprites               
+        this.sprites = this.sprites.concat(this.goombas);
+        this.sprites = this.sprites.concat(this.koopas);
+        this.entityCollider = new EntityCollider(this.sprites);                         // For checking entities collision
         
         // Debugging layer...
         // --------------------------- Collision layer (debugging) -------------
@@ -123,9 +143,6 @@ export default JSWooF.App1 = class extends Game {
             };
         });
         // ---------------------------------------------------------------------
-        this.sriptes = this.sprites.push(this.mario);
-        this.sprites = this.sprites.concat(this.goombas);
-        this.sprites = this.sprites.concat(this.koopas);
     }
     
     /**
@@ -186,61 +203,59 @@ export default JSWooF.App1 = class extends Game {
         }
         
         if (this.level.isReady) {                                           // When the level is ready...
-            if (this.mario.pos.Y < 640) {                                   // Moving mario
-                this.mario.update(this.TargetElapsedTime);
-                this.mario.vel.Y += this.gravity * this.TargetElapsedTime;
-            } else {
-                this.mario.pos.X = 40;                                      // Reset mario
-                this.mario.pos.Y = -174;
-                this.mario.vel.X = 0;
-                this.mario.vel.Y = 0;
-            }
         
-            let collidingSides;                                             // Test for collision
-            collidingSides = this.level.tileCollider.testByStep(this.mario, ["ground", "chance", "pipe"], 
-                (this.level.tileCollider.tiles.tileSize - 1));
-            this.mario.isFloating = !collidingSides.bottom;
-            if (collidingSides.top) {
-                this.mario.jump.cancel();
-            }
-        
-            this.goombas.forEach(function(goomba) {                             
-                goomba.update(this.TargetElapsedTime);                      // Moving goombas
-                goomba.vel.X = 1500 * this.TargetElapsedTime * goomba.direction;
-                goomba.vel.Y += this.gravity * this.TargetElapsedTime;
-            
-                let collidingSides;                                         // Testing goombas for collision
-                collidingSides = this.level.tileCollider.testByStep(goomba, ["ground", "chance", "pipe"], 
-                    (this.level.tileCollider.tiles.tileSize - 1));
-                if (collidingSides.right)
-                {
-                    goomba.direction = -1;
-                } else if (collidingSides.left) {
-                    goomba.direction = 1;
+            this.sprites.forEach(function(sprite) {                         
+                sprite.update(this.TargetElapsedTime);                      // Moving sprites
+                sprite.vel.Y += this.gravity * this.TargetElapsedTime;
+                
+                if (sprite.stomper != undefined) {
+                    
+                    if (sprite.pos.Y > 640) {                               // Reset Mario
+                        sprite.pos.X = 100;                                     
+                        sprite.pos.Y = -174;
+                        sprite.vel.X = 0;
+                        sprite.vel.Y = 0;
+                        sprite.status.revive();
+                    }
+                    if (sprite.status.isAlive) {
+                        let collidingSides;                                 // Test Mario for collision
+                        collidingSides = this.level.tileCollider.testByStep(sprite, ["ground", "chance", "pipe"], 
+                            (this.level.tileCollider.tiles.tileSize - 1));
+                        sprite.isFloating = !collidingSides.bottom;
+                        if (collidingSides.top) {
+                            sprite.jump.cancel();
+                        }
+                    }
+                    
+                } else {
+                    
+                    if (!sprite.status.isKnockout) {
+                        let collidingSides;                                 // Testing enemies for collision
+                        collidingSides = this.level.tileCollider.testByStep(sprite, ["ground", "chance", "pipe"], 
+                            (this.level.tileCollider.tiles.tileSize - 1));
+                        if (collidingSides.right)
+                        {
+                            sprite.walk.direction = -sprite.walk.direction;
+                        } else if (collidingSides.left) {
+                            sprite.walk.direction = -sprite.walk.direction;
+                        }
+                    }
+                    
                 }
-            }, this);
-        
-            this.koopas.forEach(function(koopa) {                             
-                koopa.update(this.TargetElapsedTime);                       // Moving koopas
-                koopa.vel.X = 1500 * this.TargetElapsedTime * koopa.direction;
-                koopa.vel.Y += this.gravity * this.TargetElapsedTime;
             
-                let collidingSides;                                         // Testing koopas for collision
-                collidingSides = this.level.tileCollider.testByStep(koopa, ["ground", "chance", "pipe"], 
-                    (this.level.tileCollider.tiles.tileSize - 1));
-                if (collidingSides.right)
-                {
-                    koopa.direction = -1;
-                } else if (collidingSides.left) {
-                    koopa.direction = 1;
-                }
+                this.entityCollider.check(sprite);                          // For checking entities collision                     
             }, this);
+            
         } else {
-            this.mario.pos.X = 40;                                          // Reset mario
+            this.mario.pos.X = 100;                                         // Reset mario
             this.mario.pos.Y = -174;
             this.mario.vel.X = 0;
             this.mario.vel.Y = 0;
         }
+        
+        // --------------------------Clean arrays ------------------------------
+        this.sprites = this.sprites.filter(sprite => sprite.status.Remove === false);
+        // ---------------------------------------------------------------------
         
         super.update(gameTime);
     }
@@ -261,14 +276,9 @@ export default JSWooF.App1 = class extends Game {
         
         if (this.level.isReady) {
             this.level.background.draw(this.spriteBatch, this.level.getData(), this.level.getData().background);    // Drawing background
-        
-            this.mario.draw(this.spriteBatch);                                                                      // Drawing Mario
-        
-            this.goombas.forEach(function(goomba) {                                                                 // Drawing Enemies
-                goomba.draw(this.spriteBatch);                                 
-            }, this);
-            this.koopas.forEach(function(koopa) {
-                koopa.draw(this.spriteBatch);                                 
+    
+            this.sprites.forEach(function(sprite) {                                                                 // Drawing sprites
+                sprite.draw(this.spriteBatch);
             }, this);
         }
 
@@ -296,7 +306,7 @@ export default JSWooF.App1 = class extends Game {
             }, this);
             
             // *************************** Camera ******************************
-            this.sprites.forEach(function(sprite) {
+            this.sprites.forEach(function(sprite, index, array) {
                 var spriteXpos = sprite.pos.X;                      // Sprites
                 var spriteYpos = sprite.pos.Y;
                 const cameraXposSprite = Math.floor(this.GraphicsDevice.Viewport.X);
